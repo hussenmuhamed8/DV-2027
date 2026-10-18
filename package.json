@@ -1,0 +1,16 @@
+{
+  "name": "dv-frame",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Arabic and English, browser-local DV photo capture and composition assistant",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "setup": "node scripts/setup-assets.mjs",
+    "build": "node scripts/bundle.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run build && npm test",
+    "dev": "npm run build && node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs"
+  }
+}

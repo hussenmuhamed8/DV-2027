@@ -1,0 +1,9 @@
+node_modules/
+public/
+*.zip
+*.tar.gz
+.env
+.env.*
+.DS_Store
+dist/
+.openai/

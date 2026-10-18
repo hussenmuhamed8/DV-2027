@@ -1,0 +1,4 @@
+import fs from 'node:fs/promises';import path from 'node:path';import crypto from 'node:crypto';
+const assets=JSON.parse(await fs.readFile('assets.lock.json','utf8'));
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+for(const asset of assets){const target=path.join('public',asset.path);let existing;try{existing=await fs.readFile(target);}catch{}if(existing&&hash(existing)===asset.sha256){console.log('Verified '+asset.path);continue;}console.log('Downloading '+asset.path);const res=await fetch(asset.url,{signal:AbortSignal.timeout(120000)});if(!res.ok)throw new Error(`${asset.path}: HTTP ${res.status}`);const bytes=Buffer.from(await res.arrayBuffer());if(hash(bytes)!==asset.sha256)throw new Error('Checksum mismatch: '+asset.path);await fs.mkdir(path.dirname(target),{recursive:true});await fs.writeFile(target+'.tmp',bytes);await fs.rename(target+'.tmp',target);}console.log('All assets ready.');

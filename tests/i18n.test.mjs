@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
+const dictionary=JSON.parse(fs.readFileSync('src/translations.json','utf8'));
+const source=fs.readFileSync('src/i18n.js','utf8').split('collectStaticTranslations();')[0].replace('/* TRANSLATIONS */',()=>JSON.stringify(dictionary));
+const context=vm.createContext({});vm.runInContext(source+'\nlanguage="en";this.translate=tr;',context);
+test('every static Arabic label has a complete English translation',()=>{const html=fs.readFileSync('src/index.html','utf8');for(const m of html.matchAll(/>([^<>]+)</g)){const text=m[1].trim();if(!/[\u0600-\u06ff]/.test(text))continue;assert.doesNotMatch(context.translate(text),/[\u0600-\u06ff]/,text);}});
+test('measurements and partial phrases translate without changing numbers',()=>{const samples=['62% من الأسفل · متمركز ضمن النطاق','الجزء المقصوص 900 بكسل؛ كافٍ للتصدير.','الجزء المقصوص 400 بكسل؛ استخدم صورة أعلى دقة أو قلّل التقريب.','600 × 600 بكسل · JPEG · 120.3 KB','المس منتصف الخط بين العينين'];for(const text of samples){assert.doesNotMatch(context.translate(text),/[\u0600-\u06ff]/,text);}assert.match(context.translate(samples[3]),/120\.3 KB/);});
+test('storage disabled falls back to Arabic safely',()=>{const sandbox=vm.createContext({localStorage:{getItem(){throw new Error('disabled');}}});vm.runInContext(source+'\nthis.result=tr("الوجه والوضعية");',sandbox);assert.equal(sandbox.result,'الوجه والوضعية');});
